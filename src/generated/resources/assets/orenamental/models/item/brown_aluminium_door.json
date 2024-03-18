@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "orenamental:item/aluminium/brown/brown_aluminium_door"
+  }
+}

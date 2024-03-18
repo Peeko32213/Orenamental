@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "orenamental:block/aluminium/brown/brown_aluminium_pillar"
+  }
+}
