@@ -2,7 +2,8 @@ package com.peeko32213.orenamental.datagen;
 
 import com.google.common.collect.ImmutableMap;
 import com.peeko32213.orenamental.Orenamental;
-import com.peeko32213.orenamental.blocks.OBlockFamilies;
+import com.peeko32213.orenamental.blocks.*;
+import com.peeko32213.orenamental.items.OItems;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -14,7 +15,9 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static com.peeko32213.orenamental.Orenamental.prefix;
@@ -23,6 +26,7 @@ public class ItemModelGenerator extends ItemModelProvider {
     public ItemModelGenerator(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, Orenamental.MODID, existingFileHelper);
     }
+    private final Set<Item> itemSet = new HashSet<>();
     static final Map<BlockFamily.Variant, BiConsumer<ItemModelGenerator, Block>> SHAPE_CONSUMERS =
             ImmutableMap.<BlockFamily.Variant, BiConsumer<ItemModelGenerator, Block>>builder()
                     .put(BlockFamily.Variant.BUTTON, ItemModelGenerator::toBlock)
@@ -56,8 +60,19 @@ public class ItemModelGenerator extends ItemModelProvider {
 //
             }
         });
-        //singleTexBlock(ABlocks.SHRUBS);
-        //singleTexBlock(ABlocks.OVERGROWN_SHRUBS);
+        for(RegistryObject<Block> item : OBlocks.BLOCKS.getEntries()) {
+            if(itemSet.contains(item.get())) continue;
+            Block block1 = item.get();
+            if(block1 instanceof StripDyeBlock) {
+                if(block1 instanceof StrippableDoorBlock) {
+                    singleTexBlockItem(item, "aluminium");
+                } else if(!(block1 instanceof StrippableTrapDoorBlock)) {
+                    toBlock(block1);
+                }
+
+            }
+
+        }
 
     }
 
@@ -88,6 +103,16 @@ public class ItemModelGenerator extends ItemModelProvider {
         toBlockModel(b, prefix("block/" + model));
     }
 
+    private void toBlock(Block b, String loc) {
+        toBlockModel(b, ForgeRegistries.BLOCKS.getKey(b).getPath(), loc);
+    }
+
+
+    private void toBlockModel(Block b, String model, String loc) {
+        String p = model.split("_")[0];
+        toBlockModel(b, prefix("block/" + loc  +"/"+  p + "/" + model));
+    }
+
     private void toBlockModelItem(Block b, String model) {
         toBlockModel(b, prefix("item/" + model));
     }
@@ -103,6 +128,17 @@ public class ItemModelGenerator extends ItemModelProvider {
     }
     private ItemModelBuilder singleTexBlockItem(RegistryObject<Block> item) {
         return generated(item.getId().getPath(), prefix("item/" + item.getId().getPath()));
+    }
+
+
+    private ItemModelBuilder singleTexBlockItem(RegistryObject<Block> item, String loc) {
+        String p = item.getId().getPath().split("_")[0];
+        return generated(item.getId().getPath(), prefix("item/"  + loc  +"/"+  p + "/" + item.getId().getPath()));
+    }
+
+    private ItemModelBuilder singleTexBlock(RegistryObject<Block> item, String loc) {
+        String p = item.getId().getPath().split("_")[0];
+        return generated(item.getId().getPath(), prefix("block/" + loc  +"/"+  p + "/" +item.getId().getPath()));
     }
     private ItemModelBuilder singleTexBlock(RegistryObject<Block> item) {
         return generated(item.getId().getPath(), prefix("block/" + item.getId().getPath()));

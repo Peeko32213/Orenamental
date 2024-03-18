@@ -3,22 +3,22 @@ package com.peeko32213.orenamental.datagen;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import com.peeko32213.orenamental.Orenamental;
-import com.peeko32213.orenamental.blocks.OBlockFamilies;
+import com.peeko32213.orenamental.blocks.*;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraftforge.client.model.generators.BlockModelBuilder;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
-import net.minecraftforge.client.model.generators.ModelFile;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static com.peeko32213.orenamental.Orenamental.prefix;
@@ -26,7 +26,7 @@ import static net.minecraftforge.client.model.generators.ModelProvider.BLOCK_FOL
 
 public class OBlockStateGenerator extends BlockStateProvider {
     private static final Logger LOGGER = LogUtils.getLogger();
-
+    private final Set<Block> blockSet = new HashSet<>();
     public OBlockStateGenerator(PackOutput output, ExistingFileHelper exFileHelper) {
         super(output, Orenamental.MODID, exFileHelper);
     }
@@ -66,6 +66,30 @@ public class OBlockStateGenerator extends BlockStateProvider {
 
             }
         });
+
+        for(RegistryObject<Block> block : OBlocks.BLOCKS.getEntries()) {
+            if(blockSet.contains(block.get())) continue;
+            Block block1 = block.get();
+            if(block1 instanceof StripDyeBlock) {
+                if(block1 instanceof StrippableDyeBlock) {
+                    blockWithItem(block.get(), "aluminium");
+                }
+
+                if(block1 instanceof StrippableDoorBlock) {
+                    generateDoor(block.get(), "aluminium");
+                }
+
+                if(block1 instanceof StrippableTrapDoorBlock) {
+                    generateTrapDoor(block.get(), "aluminium");
+                }
+
+                //if(block1 instanceof StrippableRotatedPillarBlock) {
+                //    generateTrapDoor(block.get(), "aluminium");
+                //}
+            }
+
+        }
+
     }
 
     private void buildLamp(Block block) {
@@ -93,9 +117,12 @@ public class OBlockStateGenerator extends BlockStateProvider {
         wallBlockWithRenderType((WallBlock) block, prefix("block/" + key(block).getPath().replace("_wall", "")), "cutout");
         generatedWall(name(block), ResourceLocation.tryParse(blockTexture(block).toString().replace("_wall", "")));
     }
-    
     public void generateTrapDoor(Block block){
         trapdoorBlockWithRenderType((TrapDoorBlock) block, prefix("block/" + key(block).getPath().replace("_trapdoor", "")), true, "cutout");
+    }
+    public void generateTrapDoor(Block block, String loc){
+        String p = key(block).getPath().split("_")[0];
+        trapdoorBlockWithRenderType((TrapDoorBlock) block, prefix("block/" + loc  +"/"+ p + "/" + key(block).getPath()), true, "cutout");
     }
 
     public void generateStair(Block block){
@@ -127,9 +154,12 @@ public class OBlockStateGenerator extends BlockStateProvider {
     public void generateChiseled(Block block){
         blockWithItem(block);
     }
-    
     public void generateDoor(Block doorBlock){
-        doorBlockWithRenderType((DoorBlock) doorBlock, prefix("block/" + key(doorBlock).getPath()+ "_top"), prefix("block/" + key(doorBlock).getPath()+ "_bottom"), "cutout");
+        doorBlockWithRenderType((StrippableDoorBlock) doorBlock, prefix("block/" + key(doorBlock).getPath()+ "_top"), prefix("block/" + key(doorBlock).getPath()+ "_bottom"), "cutout");
+    }
+    public void generateDoor(Block doorBlock, String loc){
+        String p = key(doorBlock).getPath().split("_")[0];
+        doorBlockWithRenderType((StrippableDoorBlock) doorBlock, prefix("block/" + loc  +"/"+  p + "/" +  key(doorBlock).getPath()+ "_top"), prefix("block/" + loc +"/"+  p + "/" + key(doorBlock).getPath()+ "_bottom"), "cutout");
     }
     
     public void generateButton(Block block){
@@ -142,8 +172,23 @@ public class OBlockStateGenerator extends BlockStateProvider {
     private void blockWithItem(Block blockRegistryObject, ModelFile file) {
         simpleBlockWithItem(blockRegistryObject,file);
     }
+
     private void blockWithItem(Block blockRegistryObject) {
         simpleBlockWithItem(blockRegistryObject, cubeAll(blockRegistryObject));
+    }
+
+    private void blockWithItem(Block blockRegistryObject, String loc) {
+        simpleBlockWithItem(blockRegistryObject, cubeAll(blockRegistryObject, loc));
+    }
+
+    public ModelFile cubeAll(Block block, String loc) {
+        return models().cubeAll(name(block), blockTexture(block, loc));
+    }
+
+    public ResourceLocation blockTexture(Block block, String loc) {
+        ResourceLocation name = key(block);
+        String p = key(block).getPath().split("_")[0];
+        return new ResourceLocation(name.getNamespace(), ModelProvider.BLOCK_FOLDER + "/" + loc + "/" + p + "/"+ name.getPath());
     }
 
     private void blockWithItemSlab(Block blockRegistryObject) {
