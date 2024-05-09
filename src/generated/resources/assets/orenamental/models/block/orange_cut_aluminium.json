@@ -1,5 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
+  "render_type": "minecraft:cutout",
   "textures": {
     "all": "orenamental:block/aluminium/orange/orange_cut_aluminium"
   }

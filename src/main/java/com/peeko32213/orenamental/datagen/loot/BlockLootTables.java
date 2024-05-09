@@ -1,5 +1,7 @@
 package com.peeko32213.orenamental.datagen.loot;
 
+import com.peeko32213.orenamental.blocks.OBlockFamilies;
+import net.minecraft.data.BlockFamily;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
@@ -12,11 +14,12 @@ import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class BlockLootTables extends BlockLootSubProvider {
     private final Set<Block> knownBlocks = new HashSet<>();
-
+    private final Set<Block> usedBlocks = new HashSet<>();
     public BlockLootTables() {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags());
     }
@@ -47,6 +50,29 @@ public class BlockLootTables extends BlockLootSubProvider {
 //
         //    }
         //});
+
+        OBlockFamilies.getAllFamilies().forEach(blockFamily -> {
+
+            this.dropSelf(blockFamily.getBaseBlock());
+
+            for(Map.Entry<BlockFamily.Variant, Block> family : blockFamily.getVariants().entrySet()){
+                Block block = family.getValue();
+                Block main = blockFamily.getBaseBlock();
+                BlockFamily.Variant variant = family.getKey();
+
+                this.dropSelf(block);
+                //BiConsumer<BlockTagGenerator, Block> biconsumer = BlockTagGenerator.SHAPE_CONSUMERS.get(variant);
+                //if (biconsumer != null) {
+                //    biconsumer.accept(this, block);
+                //}
+
+            }
+        });
+    }
+
+    protected void dropSelf(Block pBlock) {
+        usedBlocks.add(pBlock);
+        this.dropOther(pBlock, pBlock);
     }
 
     protected LootTable.Builder createCopperLikeOreDrops(Block pBlock, Item item) {

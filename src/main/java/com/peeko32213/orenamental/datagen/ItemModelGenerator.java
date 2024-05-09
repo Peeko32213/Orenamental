@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.peeko32213.orenamental.Orenamental;
 import com.peeko32213.orenamental.blocks.*;
 import com.peeko32213.orenamental.items.OItems;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -27,29 +28,31 @@ public class ItemModelGenerator extends ItemModelProvider {
         super(output, Orenamental.MODID, existingFileHelper);
     }
     private final Set<Item> itemSet = new HashSet<>();
+    public static BlockFamily family = null;
     static final Map<BlockFamily.Variant, BiConsumer<ItemModelGenerator, Block>> SHAPE_CONSUMERS =
             ImmutableMap.<BlockFamily.Variant, BiConsumer<ItemModelGenerator, Block>>builder()
-                    .put(BlockFamily.Variant.BUTTON, ItemModelGenerator::toBlock)
-                    .put(BlockFamily.Variant.DOOR, ItemModelGenerator::toBlock)
+                    .put(BlockFamily.Variant.BUTTON, ItemModelGenerator::toBlockButton)
+                    .put(BlockFamily.Variant.DOOR, ItemModelGenerator::singleTexBlockItem)
                     .put(BlockFamily.Variant.CHISELED, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.CRACKED, ItemModelGenerator::toBlock)
-                    .put(BlockFamily.Variant.CUSTOM_FENCE, ItemModelGenerator::toBlock)
-                    .put(BlockFamily.Variant.FENCE, ItemModelGenerator::toBlock)
+                    .put(BlockFamily.Variant.CUSTOM_FENCE, ItemModelGenerator::toBlockFence)
+                    .put(BlockFamily.Variant.FENCE, ItemModelGenerator::toBlockFence)
                     .put(BlockFamily.Variant.CUSTOM_FENCE_GATE, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.FENCE_GATE, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.SIGN, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.SLAB, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.STAIRS, ItemModelGenerator::toBlock)
                     .put(BlockFamily.Variant.PRESSURE_PLATE, ItemModelGenerator::toBlock)
-                    .put(BlockFamily.Variant.TRAPDOOR, ItemModelGenerator::toBlock)
+                    .put(BlockFamily.Variant.TRAPDOOR, ItemModelGenerator::toBlockTrapdoor)
                     .put(BlockFamily.Variant.WALL, ItemModelGenerator::toBlockWall)
                     .build();
     @Override
     protected void registerModels() {
 
         OBlockFamilies.getAllFamilies().filter(BlockFamily::shouldGenerateModel).forEach(blockFamily -> {
-//
+
             for(Map.Entry<BlockFamily.Variant, Block> family : blockFamily.getVariants().entrySet()){
+                this.family = blockFamily;
                 Block block = family.getValue();
                 Block main = blockFamily.getBaseBlock();
                 BlockFamily.Variant variant = family.getKey();
@@ -57,7 +60,7 @@ public class ItemModelGenerator extends ItemModelProvider {
                 if (biconsumer != null) {
                     biconsumer.accept(this, block);
                 }
-//
+
             }
         });
         for(RegistryObject<Block> item : OBlocks.BLOCKS.getEntries()) {
@@ -68,6 +71,10 @@ public class ItemModelGenerator extends ItemModelProvider {
                     singleTexBlockItem(item, "aluminium");
                 } else if(!(block1 instanceof StrippableTrapDoorBlock)) {
                     toBlock(block1);
+                }
+                if(block1 instanceof StrippableTrapDoorBlock) {
+                    toBlockTrapdoor(block1);
+
                 }
 
             }
@@ -88,9 +95,23 @@ public class ItemModelGenerator extends ItemModelProvider {
         toBlockModel(b, b.getId().getPath());
     }
 
-    private void toBlockWall(Block b) {
-        wallInventory(ForgeRegistries.BLOCKS.getKey(b).toString(),  prefix("block/" + ForgeRegistries.BLOCKS.getKey(b).getPath().replace("_wall", "")));
+    private void toBlockWall(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        wallInventory(BuiltInRegistries.BLOCK.getKey(block).toString(),  prefix("block/" + BuiltInRegistries.BLOCK.getKey(block1).getPath()));
     }
+    private ItemModelBuilder singleTexBlockItem(Block  item) {
+        return generated(key(item).getPath(), prefix("item/" + key(item).getPath()));
+    }
+    private void toBlockTrapdoor(Block b) {
+        String s = BuiltInRegistries.BLOCK.getKey(b).getPath();
+        StringBuilder stringBuilder = new StringBuilder(s);
+        stringBuilder.append("_bottom");
+        toBlockModel(b, stringBuilder.toString());
+    }
+
     private void toBlock(Block b) {
         toBlockModel(b, ForgeRegistries.BLOCKS.getKey(b).getPath());
     }
@@ -98,7 +119,20 @@ public class ItemModelGenerator extends ItemModelProvider {
     private void toBlockItem(Block b) {
         toBlockModelItem(b, ForgeRegistries.BLOCKS.getKey(b).getPath());
     }
-
+    private void toBlockFence(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        fenceInventory(BuiltInRegistries.BLOCK.getKey(block).toString(),  prefix("block/" + BuiltInRegistries.BLOCK.getKey(block1).getPath()));
+    }
+    private void toBlockButton(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        buttonInventory(BuiltInRegistries.BLOCK.getKey(block).toString(),  prefix("block/" + BuiltInRegistries.BLOCK.getKey(block1).getPath()));
+    }
     private void toBlockModel(Block b, String model) {
         toBlockModel(b, prefix("block/" + model));
     }
@@ -164,5 +198,8 @@ public class ItemModelGenerator extends ItemModelProvider {
     }
     private void toBlockModel(Block b, ResourceLocation model) {
         withExistingParent(ForgeRegistries.BLOCKS.getKey(b).getPath(), model);
+    }
+    private ResourceLocation key(Block block) {
+        return BuiltInRegistries.BLOCK.getKey(block);
     }
 }

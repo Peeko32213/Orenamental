@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "all": "orenamental:block/aluminium/black/black_cut_aluminium"
+  }
+}

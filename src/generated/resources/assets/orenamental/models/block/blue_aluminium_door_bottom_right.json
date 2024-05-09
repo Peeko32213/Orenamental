@@ -2,7 +2,7 @@
   "parent": "minecraft:block/door_bottom_right",
   "render_type": "minecraft:cutout",
   "textures": {
-    "bottom": "orenamental:block/aluminium/blue/blue_aluminium_door_top",
-    "top": "orenamental:block/aluminium/blue/blue_aluminium_door_bottom"
+    "bottom": "orenamental:block/aluminium/blue/blue_aluminium_door_bottom",
+    "top": "orenamental:block/aluminium/blue/blue_aluminium_door_top"
   }
 }

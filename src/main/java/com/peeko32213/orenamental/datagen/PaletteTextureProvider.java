@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import static com.peeko32213.orenamental.Orenamental.prefix;
+
 public abstract class PaletteTextureProvider implements DataProvider {
 
     private final PackOutput.PathProvider pathProvider;
@@ -42,8 +44,13 @@ public abstract class PaletteTextureProvider implements DataProvider {
 
         String name =  blockNameSpace+"/" + prefix + "/" + prefix + "_" + fileName;
 
+        NativeImage im = loadTexture(prefix(name), true);
+        if(im != null) {
+            LOGGER.error("Texture {} has already been generated before, skipping!", name);
+            return;
+        }
         genTexture(consumer, name, () -> {
-            NativeImage inputTexture = loadTexture(inputFile);
+            NativeImage inputTexture = loadTexture(inputFile, false);
             palette.initializeMap(existingFileHelper);
             return inputTexture.mappedCopy(color -> {
                 if(color == 0) return color;
@@ -89,7 +96,7 @@ public abstract class PaletteTextureProvider implements DataProvider {
     }
 
 
-    protected NativeImage loadTexture(ResourceLocation inputFile)
+    protected NativeImage loadTexture(ResourceLocation inputFile, boolean check)
     {
         try (var stream = existingFileHelper.getResource(inputFile, PackType.CLIENT_RESOURCES, ".png", "textures").open())
         {
@@ -97,6 +104,7 @@ public abstract class PaletteTextureProvider implements DataProvider {
         }
         catch (IOException e)
         {
+            if(check) return null;
             throw new UncheckedIOException(e);
         }
     }

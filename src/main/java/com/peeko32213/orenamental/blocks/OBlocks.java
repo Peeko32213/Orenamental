@@ -29,13 +29,13 @@ public class OBlocks {
 
     public static final RegistryObject<Block> ALUMINIUM_BLOCK = registerBlock("aluminium_block", () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> ALUMINIUM_DOOR = registerBlock("aluminium_door", () -> new DoorBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), BlockSetType.IRON));
-    public static final RegistryObject<Block> ALUMINIUM_GRATE= registerBlock("aluminium_grate", () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+    public static final RegistryObject<Block> ALUMINIUM_GRATE= registerBlock("aluminium_grate", () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
     public static final RegistryObject<Block> ALUMINIUM_PILLAR= registerBlock("aluminium_pillar", () -> new RotatedPillarBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> ALUMINIUM_TRAPDOOR= registerBlock("aluminium_trapdoor", () -> new TrapDoorBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), BlockSetType.IRON));
     public static final RegistryObject<Block> CUT_ALUMINIUM = registerBlock("cut_aluminium", () -> new Block(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> CUT_ALUMINIUM_PILLAR = registerBlock("cut_aluminium_pillar", () -> new RotatedPillarBlock(BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
 
-
+    public static final RegistryObject<Block> BLACK_ALUMINIUM_BLOCK = registerAluminiumBlockWithFamily(PaletteRegistry.BLACK_ALUMINIUM, DyeColor.BLACK, () -> new StrippableDyeBlock( DyeColor.BLACK, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> BLUE_ALUMINIUM_BLOCK = registerAluminiumBlockWithFamily(PaletteRegistry.BLUE_ALUMINIUM, DyeColor.BLUE, () -> new StrippableDyeBlock( DyeColor.BLUE, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> GRAY_ALUMINIUM_BLOCK = registerAluminiumBlockWithFamily(PaletteRegistry.GRAY_ALUMINIUM, DyeColor.GRAY, () -> new StrippableDyeBlock( DyeColor.GRAY, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
     public static final RegistryObject<Block> WHITE_ALUMINIUM = registerAluminiumBlockWithFamily(PaletteRegistry.WHITE_ALUMINIUM, DyeColor.WHITE, () -> new StrippableDyeBlock( DyeColor.WHITE, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
@@ -55,7 +55,7 @@ public class OBlocks {
         RegistryObject<DoorBlock> doorBlock = registerBlock(nameDoor, () -> new StrippableDoorBlock(color,BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK), BlockSetType.IRON));
 
         String nameGrate = palettes.getPrefix() + "_aluminium_grate";
-        RegistryObject<Block> grateBlock =registerBlock(nameGrate, () -> new StrippableDyeBlock(color, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));
+        RegistryObject<Block> grateBlock =registerBlock(nameGrate, () -> new StrippableDyeBlock(color, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK).noOcclusion()));
 
         String namePillar = palettes.getPrefix() + "_aluminium_pillar";
         RegistryObject<Block> pillarBlock =registerBlock(namePillar, () -> new StrippableDyeBlock(color, BlockBehaviour.Properties.copy(Blocks.IRON_BLOCK)));

@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import com.peeko32213.orenamental.Orenamental;
 import com.peeko32213.orenamental.blocks.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.BlockFamily;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +31,7 @@ public class OBlockStateGenerator extends BlockStateProvider {
     public OBlockStateGenerator(PackOutput output, ExistingFileHelper exFileHelper) {
         super(output, Orenamental.MODID, exFileHelper);
     }
-
+    public static BlockFamily family = null;
     static final Map<BlockFamily.Variant, BiConsumer<OBlockStateGenerator, Block>> SHAPE_CONSUMERS =
             ImmutableMap.<BlockFamily.Variant, BiConsumer<OBlockStateGenerator, Block>>builder()
                     .put(BlockFamily.Variant.BUTTON, OBlockStateGenerator::generateButton)
@@ -55,7 +56,8 @@ public class OBlockStateGenerator extends BlockStateProvider {
 
         OBlockFamilies.getAllFamilies().filter(BlockFamily::shouldGenerateModel).forEach(blockFamily -> {
             blockWithItem(blockFamily.getBaseBlock());
-            for(Map.Entry<BlockFamily.Variant, Block> family : blockFamily.getVariants().entrySet()){
+            for (Map.Entry<BlockFamily.Variant, Block> family : blockFamily.getVariants().entrySet()) {
+                this.family = blockFamily;
                 Block block = family.getValue();
                 Block main = blockFamily.getBaseBlock();
                 BlockFamily.Variant variant = family.getKey();
@@ -63,7 +65,7 @@ public class OBlockStateGenerator extends BlockStateProvider {
                 if (biconsumer != null) {
                     biconsumer.accept(this, block);
                 }
-
+//
             }
         });
 
@@ -109,42 +111,69 @@ public class OBlockStateGenerator extends BlockStateProvider {
         }));
     }
 
-    public void generatePressurePlate(Block block){
-        pressurePlateBlock((PressurePlateBlock) block, prefix("block/" + key(block).getPath()));
+    public void generatePressurePlate(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        pressurePlateBlock((PressurePlateBlock) block, prefix("block/" + key(block1).getPath()));
     }
-    
-    public void generateWall(Block block){
+
+    public void generateWall(Block block) {
         wallBlockWithRenderType((WallBlock) block, prefix("block/" + key(block).getPath().replace("_wall", "")), "cutout");
         generatedWall(name(block), ResourceLocation.tryParse(blockTexture(block).toString().replace("_wall", "")));
     }
-    public void generateTrapDoor(Block block){
-        trapdoorBlockWithRenderType((TrapDoorBlock) block, prefix("block/" + key(block).getPath().replace("_trapdoor", "")), true, "cutout");
+    public void generateTrapDoor(Block block) {
+        trapdoorBlockWithRenderType((TrapDoorBlock) block, prefix("block/" + key(block).getPath()), true, "cutout");
     }
     public void generateTrapDoor(Block block, String loc){
         String p = key(block).getPath().split("_")[0];
         trapdoorBlockWithRenderType((TrapDoorBlock) block, prefix("block/" + loc  +"/"+ p + "/" + key(block).getPath()), true, "cutout");
     }
 
-    public void generateStair(Block block){
-        stairsBlockWithRenderType((StairBlock) block, prefix("block/" + key(block).getPath().replace("_stairs", "")), "cutout");
+    public void generateStair(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        stairsBlockWithRenderType((StairBlock) block, prefix("block/" + key(block1).getPath()), "cutout");
     }
-    
-    public void generateSlab(Block block){
+
+    public void generateSlab(Block block) {
         //blockWithItemSlab(block);
-        slabBlock((SlabBlock) block, prefix("block/" + key(block).getPath().replace("_slab", "")), prefix("block/" + key(block).getPath().replace("_slab", "")), prefix("block/" + key(block).getPath().replace("_slab", "")), prefix("block/" + key(block).getPath().replace("_slab", "")));
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        slabBlock((SlabBlock) block, prefix("block/" + key(block1).getPath()), prefix("block/" + key(block1).getPath()), prefix("block/" + key(block1).getPath()), prefix("block/" + key(block1).getPath()));
     }
-    
-    public void generateSign(Block signBlock){
+
+    public void generateSign(Block signBlock) {
         LOGGER.error("Sign gen is not yet implemented!");
-        //signBlock((StandingSignBlock) signBlock, (WallSignBlock) wallSignBlock, prefix("block/" + key(signBlock).getPath()));
+
+        String p =key(signBlock).getPath();
+        String z = p.replace("_sign","_wall_sign").replace("blocks/", "");
+        ResourceLocation hanging = prefix(z);
+        Block block = getBlock(hanging);
+        //if(block == null)
+        signBlock((StandingSignBlock) signBlock, (WallSignBlock) block, prefix("entity/sign/" + key(signBlock).getPath().replace("_sign", "")));
+
     }
-    
-    public void generateFenceGate(Block block){
-        fenceGateBlockWithRenderType((FenceGateBlock) block, prefix("block/" + key(block).getPath()), "cutout");
+
+    public void generateFenceGate(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        fenceGateBlockWithRenderType((FenceGateBlock) block, prefix("block/" + key(block1).getPath()), "cutout");
     }
-    
-    public void generateFence(Block block){
-        fenceBlockWithRenderType((FenceBlock) block, prefix("block/" + key(block).getPath()), "cutout");
+
+    public void generateFence(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        fenceBlockWithRenderType((FenceBlock) block, prefix("block/" + key(block1).getPath()), "cutout");
     }
     
     public void generateCracked(Block block){
@@ -159,12 +188,17 @@ public class OBlockStateGenerator extends BlockStateProvider {
     }
     public void generateDoor(Block doorBlock, String loc){
         String p = key(doorBlock).getPath().split("_")[0];
-        doorBlockWithRenderType((StrippableDoorBlock) doorBlock, prefix("block/" + loc  +"/"+  p + "/" +  key(doorBlock).getPath()+ "_top"), prefix("block/" + loc +"/"+  p + "/" + key(doorBlock).getPath()+ "_bottom"), "cutout");
+        doorBlockWithRenderType((StrippableDoorBlock) doorBlock, prefix("block/" + loc  +"/"+  p + "/" +  key(doorBlock).getPath()+ "_bottom"), prefix("block/" + loc +"/"+  p + "/" + key(doorBlock).getPath()+ "_top"), "cutout");
     }
-    
-    public void generateButton(Block block){
-        buttonBlock((ButtonBlock) block, prefix("block/" + key(block).getPath()));
+
+    public void generateButton(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        buttonBlock((ButtonBlock) block, prefix("block/" + key(block1).getPath()));
     }
+
     private void blockWithItem(RegistryObject<Block> blockRegistryObject) {
         simpleBlockWithItem(blockRegistryObject.get(), cubeAll(blockRegistryObject.get()));
     }
@@ -182,7 +216,7 @@ public class OBlockStateGenerator extends BlockStateProvider {
     }
 
     public ModelFile cubeAll(Block block, String loc) {
-        return models().cubeAll(name(block), blockTexture(block, loc));
+        return models().cubeAll(name(block), blockTexture(block, loc)).renderType("cutout");
     }
 
     public ResourceLocation blockTexture(Block block, String loc) {
@@ -195,8 +229,12 @@ public class OBlockStateGenerator extends BlockStateProvider {
         simpleBlockWithItem(blockRegistryObject, stripSlab(blockRegistryObject));
     }
 
-    private ModelFile stripSlab(Block block){
-        return models().cubeAll(name(block), ResourceLocation.tryParse(blockTexture(block).toString().replace("_slab", "")));
+    private ModelFile stripSlab(Block block) {
+        Block block1 = block;
+        if(this.family != null) {
+            block1 = this.family.getBaseBlock();
+        }
+        return models().cubeAll(name(block), ResourceLocation.tryParse(blockTexture(block1).toString().replace("_slab", "")));
     }
 
     private void createWallFan(RegistryObject<Block> b, String renderType){
@@ -287,5 +325,8 @@ public class OBlockStateGenerator extends BlockStateProvider {
 
     private String name(Block block) {
         return key(block).getPath();
+    }
+    private Block getBlock(ResourceLocation resourceLocation) {
+        return BuiltInRegistries.BLOCK.get(resourceLocation);
     }
 }
